@@ -59,7 +59,6 @@ class HandIdentifier:
             hand_landmarks_proto.landmark.extend([
             landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
             ])
-            print(hand_landmarks_proto)
             # Draw the landmarks on the hand
             DrawingUtil.draw_landmarks(image,
                                        hand_landmarks_proto,
@@ -91,7 +90,7 @@ class HandIdentifier:
 
             # Draw the hand landmarks
             self.draw_landmarks_on_hand(image, results)
-            break
+            
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

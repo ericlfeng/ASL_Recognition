@@ -7,12 +7,12 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 class HandMatcher:
     def __init__(self):
-        
-        df = 
-        all = ['area', "perimeter", 'compactness', 'kernel_length', 'kernel_width', "asymmetry_coef", "groove_length"]
+        df = pd.read_csv("data/cleanhands.csv")
+        all = df.loc[:, df.columns != "label"]
         selected = []
         to_add = len(all)
-        y_train = df["seed"]
+        y_train = df["label"]
+        scorelist = []
 
         model = KNeighborsClassifier(n_neighbors=5)
         # Perform forward selection
@@ -22,7 +22,7 @@ class HandMatcher:
             for feature in all:
                 if feature not in selected:
                     combined_features = selected + [feature]
-                    X_train, X_test, y_train, y_test = train_test_split(df[combined_features], df["seed"], test_size= 0.2, random_state=5)
+                    X_train, X_test, y_train, y_test = train_test_split(df[combined_features], df["label"], test_size= 0.2, random_state=5)
                     #print(combined_features)
                     model.fit(X_train, y_train)
                     model_score = model.score(X_test, y_test)
@@ -32,15 +32,20 @@ class HandMatcher:
                         best_feature = feature
             
             # Append best feature to model
+            if(not best_feature):
+                break
+            
+            
             selected.append(best_feature)
             print("Added best feature:", best_feature + ", Current feature list:", selected, "Current Score:", best_score)
+            scorelist.append(best_score)
             to_add -= 1
         # Print final feature score
-        X_train, X_test, y_train, y_test = train_test_split(df[combined_features], df["seed"], test_size= 0.2, random_state=5)
+        X_train, X_test, y_train, y_test = train_test_split(df[combined_features], df["label"], test_size= 0.2, random_state=5)
         model.fit(X_train, y_train)
         initial_score = model.score(X_test, y_test)
 
-        print("Final features:", selected, "Score:", initial_score)
+        #print("Final features:", selected, "Score:", initial_score)
 
 
         #TODO: Save the weights of the model to a file so I can access it

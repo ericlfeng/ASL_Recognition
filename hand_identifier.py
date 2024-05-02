@@ -36,10 +36,14 @@ class HandIdentifier:
                                                 num_hands=2)
         self.detector = HandLandmarker.create_from_options(options)
 
+        mp_drawing = mp.solutions.drawing_utils
+        mp_hands = mp.solutions.hands
+
+
+
         # TODO: Load video
         self.video = cv2.VideoCapture(0)
 
-    
     def draw_landmarks_on_hand(self, image, detection_result):
         """
         Draws all the landmarks on the hand
@@ -66,8 +70,57 @@ class HandIdentifier:
                                        solutions.drawing_styles.get_default_hand_landmarks_style(),
                                        solutions.drawing_styles.get_default_hand_connections_style())
 
+    def convert_detection_result(self, detection_result, image):
+            """
+            Draws all the landmarks on the hand
+            Args:
+                image (Image): Image to draw on
+                detection_result (HandLandmarkerResult): HandLandmarker detection results
+            """
+            # Get a list of the landmarks
+            hand_landmarks_list = detection_result.hand_landmarks
+            
+            for idx in range(len(hand_landmarks_list)):
+                #NOTE this only works for one hand
+                listofpointstoreturn = []
+                hand_landmarks = hand_landmarks_list[idx]
+
+                # Save the landmarks into a NormalizedLandmarkList
+                hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+                hand_landmarks_proto.landmark.extend([
+                landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
+                ])
+                # results = mp_hands.Hands.process(image = image)
+
+                if hand_landmarks:
+                    for landmrk in hand_landmarks:
+                        # for ids, landmrk in enumerate(hand_landmarks.landmark):
+                            # print(ids, landmrk)
+                        listofpointstoreturn.append(landmrk.x)
+                        listofpointstoreturn.append(landmrk.y)
+                        listofpointstoreturn.append(landmrk.z)
+                    return listofpointstoreturn
+            
+            return "Nothing Here"
     
-    
+    def returndatapoints(self, image):
+        to_detect = mp.Image(image_format=mp.ImageFormat.SRGB, data=image)
+        results = self.detector.detect(to_detect)            
+        # Draw the hand landmarks
+        points = self.convert_detection_result(results, image)
+        if points == "Nothing Here":
+            border_size = 150
+            frame = cv2.copyMakeBorder(image, top=border_size, 
+                                    bottom=border_size, left=border_size, 
+                                    right=border_size,
+                                    borderType=cv2.BORDER_CONSTANT, 
+                                    value=[0, 0, 0]
+            )
+            to_detect = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+            results = self.detector.detect(to_detect) 
+            points = self.convert_detection_result(results, frame)
+        return points
+
     def run(self):
         """
         Main game loop. Runs until the 
@@ -90,6 +143,7 @@ class HandIdentifier:
 
             # Draw the hand landmarks
             self.draw_landmarks_on_hand(image, results)
+            print(self.returndatapoints(image))
             
 
             # Change the color of the frame back
@@ -99,7 +153,6 @@ class HandIdentifier:
 
             # Break the loop if the user presses 'q'
             if cv2.waitKey(50) & 0xFF == ord('q'):
-                print(self.score)
                 break
 
         self.video.release()

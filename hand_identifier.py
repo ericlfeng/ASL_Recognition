@@ -14,6 +14,12 @@ from mediapipe.framework.formats import landmark_pb2
 import cv2
 import random
 import time
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -31,6 +37,7 @@ DrawingUtil = mp.solutions.drawing_utils
 class HandIdentifier:
     def __init__(self):
         # Create the hand detector
+        self.dfcolnames = []
         base_options = BaseOptions(model_asset_path='data/hand_landmarker.task')
         options = HandLandmarkerOptions(base_options=base_options,
                                                 num_hands=2)
@@ -38,6 +45,9 @@ class HandIdentifier:
 
         mp_drawing = mp.solutions.drawing_utils
         mp_hands = mp.solutions.hands
+        self.model = KNeighborsClassifier(n_neighbors=9)
+        self.train_model()
+
 
 
 
@@ -121,6 +131,17 @@ class HandIdentifier:
             points = self.convert_detection_result(results, frame)
         return points
 
+    def train_model(self):
+        df = pd.read_csv("data/cleanhands.csv")
+        X = df.loc[:, df.columns != "label"]
+        y = df["label"]
+        self.model = self.model.fit(X, y)
+        for i in range(1,22):
+            for j in ["x","y","z"]:
+                self.dfcolnames.append(j+str(i))
+    
+
+
     def run(self):
         """
         Main game loop. Runs until the 
@@ -143,8 +164,13 @@ class HandIdentifier:
 
             # Draw the hand landmarks
             self.draw_landmarks_on_hand(image, results)
-            print(self.returndatapoints(image))
-            
+            data_points = self.returndatapoints(image)
+            #print(data_points)
+            if data_points != "Nothing Here":
+                new_points = []
+                new_points.append(data_points)
+                to_predict = pd.DataFrame(new_points, columns = self.dfcolnames)
+                print(self.model.predict(to_predict))
 
             # Change the color of the frame back
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

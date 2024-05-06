@@ -132,7 +132,7 @@ class HandIdentifier:
         return points
 
     def train_model(self):
-        df = pd.read_csv("data/cleanhands.csv")
+        df = pd.read_csv("data/acquired_hands.csv")
         X = df.loc[:, df.columns != "label"]
         y = df["label"]
         self.model = self.model.fit(X, y)

@@ -119,9 +119,9 @@ class HandIdentifier:
                 print(self.model.predict(to_predict)[0])
                 cv2.putText(image, 
                             self.model.predict(to_predict)[0], 
-                            (50, 50), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, 
-                            (0, 255, 255), 2,  
+                            (100, 100), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 2, 
+                            GREEN, 4,  
                             cv2.LINE_4) 
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             cv2.imshow("Hand Tracking", image)

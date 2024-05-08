@@ -116,7 +116,7 @@ class HandIdentifier:
                 new_points = []
                 new_points.append(data_points)
                 to_predict = pd.DataFrame(new_points, columns = self.dfcolnames)
-                print(self.model.predict(to_predict)[0])
+                #print(self.model.predict(to_predict)[0])
                 cv2.putText(image, 
                             self.model.predict(to_predict)[0], 
                             (100, 100), 
